@@ -51,11 +51,30 @@ jobs:
         if: always()
         run: |
           curl -X POST -H 'Content-type: application/json' \
-          --data "{
-            \"blocks\": [
-              {\"type\": \"section\", \"text\": {\"type\": \"mrkdwn\", \"text\": \"*QA Tests Finished: ${{ steps.parse_results.outputs.status }}*\"}},
-              {\"type\": \"section\", \"text\": {\"type\": \"mrkdwn\", \"text\": \"*Total:* ${{ steps.parse_results.outputs.total }}\n*Passed:* ${{ steps.parse_results.outputs.passed }}\n*Failures:* ${{ steps.parse_results.outputs.failures }}\n*Errors:* ${{ steps.parse_results.outputs.errors }}\"}},
-              {\"type\": \"context\", \"elements\": [{\"type\": \"mrkdwn\", \"text\": \"Download report: <${{ github.server_url }}/${{ github.repository }}/suites/${{ github.run_id }}/artifacts|Artifact>\"]}]
+          --data '{
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*QA Tests Finished: '${{ steps.parse_results.outputs.status }}'*"
+                }
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Total:* '${{ steps.parse_results.outputs.total }}'\n*Passed:* '${{ steps.parse_results.outputs.passed }}'\n*Failures:* '${{ steps.parse_results.outputs.failures }}'\n*Errors:* '${{ steps.parse_results.outputs.errors }}'"
+                }
+              },
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "Download report: <https://github.com/VanderCaneppelle/buscabusca_tests/suites/${{ github.run_id }}/artifacts|Artifact>"
+                  }
+                ]
+              }
             ]
-          }" \
-          ${{ secrets.SLACK_WEBHOOK_URL }}
+          }' ${{ secrets.SLACK_WEBHOOK_URL }}
