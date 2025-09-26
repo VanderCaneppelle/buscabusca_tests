@@ -29,14 +29,33 @@ jobs:
           name: pytest-results
           path: results/report.xml
 
-      - name: Notify Slack
-        if: always() # garante que a notificação rode mesmo se os testes falharem
+      - name: Parse test results
+        id: parse_results
         run: |
-          STATUS="SUCCESSFUL"
-          FAILS=$(grep 'failures=' results/report.xml | sed -n 's/.*failures="\([0-9]*\)".*/\1/p')
-          if [ "$FAILS" != "0" ]; then
-            STATUS="FAILED"
+          TOTAL=$(grep 'tests=' results/report.xml | sed -n 's/.*tests="\([0-9]*\)".*/\1/p')
+          FAILURES=$(grep 'failures=' results/report.xml | sed -n 's/.*failures="\([0-9]*\)".*/\1/p')
+          ERRORS=$(grep 'errors=' results/report.xml | sed -n 's/.*errors="\([0-9]*\)".*/\1/p')
+          PASSED=$((TOTAL - FAILURES - ERRORS))
+          if [ "$FAILURES" -eq "0" ] && [ "$ERRORS" -eq "0" ]; then
+            STATUS="✅ SUCCESS"
+          else
+            STATUS="❌ FAILED"
           fi
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          echo "failures=$FAILURES" >> $GITHUB_OUTPUT
+          echo "errors=$ERRORS" >> $GITHUB_OUTPUT
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+
+      - name: Notify Slack
+        if: always()
+        run: |
           curl -X POST -H 'Content-type: application/json' \
-          --data "{\"text\":\"QA Tests finished with status: $STATUS\"}" \
+          --data "{
+            \"blocks\": [
+              {\"type\": \"section\", \"text\": {\"type\": \"mrkdwn\", \"text\": \"*QA Tests Finished: ${{ steps.parse_results.outputs.status }}*\"}},
+              {\"type\": \"section\", \"text\": {\"type\": \"mrkdwn\", \"text\": \"*Total:* ${{ steps.parse_results.outputs.total }}\n*Passed:* ${{ steps.parse_results.outputs.passed }}\n*Failures:* ${{ steps.parse_results.outputs.failures }}\n*Errors:* ${{ steps.parse_results.outputs.errors }}\"}},
+              {\"type\": \"context\", \"elements\": [{\"type\": \"mrkdwn\", \"text\": \"Download report: <${{ github.server_url }}/${{ github.repository }}/suites/${{ github.run_id }}/artifacts|Artifact>\"]}]
+            ]
+          }" \
           ${{ secrets.SLACK_WEBHOOK_URL }}
