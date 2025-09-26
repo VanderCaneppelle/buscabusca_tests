@@ -7,22 +7,30 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
+      # 1. Checa o código do repositório
       - uses: actions/checkout@v3
 
+      # 2. Configura o Python
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: 3.11
 
+      # 3. Instala dependências
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run API tests with pytest
-        run: pytest tests/api -v --junitxml=reports/results.xml
+      # 4. Roda os testes e gera relatório JUnit XML
+      - name: Run API tests
+        run: |
+          mkdir -p results
+          pytest tests/api --junitxml=results/report.xml -v
 
-      - name: Upload test report
-        uses: actions/upload-artifact@v3
+      # 5. Faz upload do relatório para o GitHub
+      - name: Upload Test Report
+        uses: actions/upload-artifact@v4
         with:
-          name: test-report
-          path: reports/results.xml
+          name: pytest-results
+          path: results/report.xml
