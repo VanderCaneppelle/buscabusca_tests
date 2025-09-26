@@ -22,6 +22,10 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # cria pasta
+      - name: Create results folder
+        run: mkdir -p results
+
       # 4. Roda os testes e gera relatório JUnit XML
       - name: Run API tests
         run: |
