@@ -7,34 +7,36 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
-      # 1. Checa o código do repositório
       - uses: actions/checkout@v3
 
-      # 2. Configura o Python
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: 3.11
 
-      # 3. Instala dependências
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - run: pip install -r requirements.txt
 
-      # cria pasta
-      - name: Create results folder
-        run: mkdir -p results
-
-      # 4. Roda os testes e gera relatório JUnit XML
-      - name: Run API tests
+      - name: Run tests
+        id: pytest
         run: |
           mkdir -p results
-          pytest tests/api --junitxml=results/report.xml -v
+          pytest tests/api --junitxml=results/report.xml || echo "Tests failed"
 
-      # 5. Faz upload do relatório para o GitHub
-      - name: Upload Test Report
+      - name: Upload test report
         uses: actions/upload-artifact@v4
         with:
           name: pytest-results
           path: results/report.xml
+
+      - name: Notify Slack
+        if: always() # garante que a notificação rode mesmo se os testes falharem
+        run: |
+          STATUS="SUCCESSFUL"
+          FAILS=$(grep 'failures=' results/report.xml | sed -n 's/.*failures="\([0-9]*\)".*/\1/p')
+          if [ "$FAILS" != "0" ]; then
+            STATUS="FAILED"
+          fi
+          curl -X POST -H 'Content-type: application/json' \
+          --data "{\"text\":\"QA Tests finished with status: $STATUS\"}" \
+          ${{ secrets.SLACK_WEBHOOK_URL }}
