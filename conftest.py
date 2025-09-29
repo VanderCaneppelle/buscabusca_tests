@@ -15,10 +15,12 @@ def supabase_config():
     service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
     anon_key = os.getenv("SUPABASE_ANON_KEY")
     auth_url = os.getenv("AUTH_URL")
+    confirmed_user_email = os.getenv("CONFIRMED_EMAIL")
+    signup_url = os.getenv("SIGNUP_URL")
 
     assert url and service_key and anon_key, "Defina variaveis do SUPABASE"
 
-    return {"url": url, "service_key": service_key, "anon_key": anon_key, "auth_url": auth_url}
+    return {"url": url, "service_key": service_key, "anon_key": anon_key, "auth_url": auth_url, "confirmed_user_email": confirmed_user_email, "signup_url": signup_url}
 
 
 @pytest.fixture(scope="session")
@@ -32,9 +34,17 @@ def supabase_anon(supabase_config) -> Client:
 
 
 @pytest.fixture
-def auth_headers(supabase_config):
+def auth_headers_service_key(supabase_config):
     return {
         'apikey': supabase_config['service_key'],
+        'Content-Type': 'application/json'
+    }
+
+
+@pytest.fixture
+def auth_headers_anon_key(supabase_config):
+    return {
+        'apikey': supabase_config['anon_key'],
         'Content-Type': 'application/json'
     }
 
