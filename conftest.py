@@ -1,11 +1,68 @@
+import uuid
 import pytest
 import requests as r
 from config import API_BASE_URL
+from supabase import create_client, Client
+import os
+
+from dotenv import load_dotenv
+load_dotenv()
+
+
+@pytest.fixture(scope="session")
+def supabase_config():
+    url = os.getenv("SUPABASE_URL")
+    service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    anon_key = os.getenv("SUPABASE_ANON_KEY")
+    auth_url = os.getenv("AUTH_URL")
+
+    assert url and service_key and anon_key, "Defina variaveis do SUPABASE"
+
+    return {"url": url, "service_key": service_key, "anon_key": anon_key, "auth_url": auth_url}
+
+
+@pytest.fixture(scope="session")
+def supabase_admin(supabase_config) -> Client:
+    return create_client(supabase_config["url"], supabase_config["service_key"])
+
+
+@pytest.fixture(scope="session")
+def supabase_anon(supabase_config) -> Client:
+    return create_client(supabase_config["url"], supabase_config["anon_key"])
+
+
+@pytest.fixture
+def auth_headers(supabase_config):
+    return {
+        'apikey': supabase_config['service_key'],
+        'Content-Type': 'application/json'
+    }
 
 
 @pytest.fixture(scope="session")
 def base_url():
     return API_BASE_URL
+
+
+@pytest.fixture()
+def temp_user(supabase_admin):
+    email = f"test_{uuid.uuid4().hex[8:]}@example.com"
+    password = "pass123"
+
+    created = supabase_admin.auth.admin.create_user({
+        "email": email,
+        "password": password,
+        "confirm_email": True,
+    })
+
+    # Extrai o id do usuário criado
+    user_id = created.user.id if created.user else None
+
+    yield {"id": user_id, "email": email, "password": password}
+
+    # Cleanup - deleta o usuário depois do teste
+    if user_id:
+        supabase_admin.auth.admin.delete_user(user_id)
 
 
 @pytest.fixture(scope="session")
@@ -33,27 +90,10 @@ def payment_correct_payload():
 
 
 @pytest.fixture
-def supabase_config():
-    return {
-        'url': 'https://rxozhlxmfbioqgqomkrz.supabase.co',
-        'anon_key': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4b3pobHhtZmJpb3FncW9ta3J6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM5OTg0MDIsImV4cCI6MjA2OTU3NDQwMn0.MsMaFjnQYvDP7xSmHS-QY2P7jZ4JCnnxDmCo6y0lk4g',
-        'auth_url': 'https://rxozhlxmfbioqgqomkrz.supabase.co/auth/v1'
-    }
-
-
-@pytest.fixture
 def test_credentials():
     return {
         'valid_email': 'vandercaneppelle@outlook.com',
         'valid_password': '123456',
         'invalid_email': 'emailinvalido@gmail.com',
         'invalid_password': 'wrongpassword'
-    }
-
-
-@pytest.fixture
-def auth_headers(supabase_config):
-    return {
-        'apikey': supabase_config['anon_key'],
-        'Content-Type': 'application/json'
     }

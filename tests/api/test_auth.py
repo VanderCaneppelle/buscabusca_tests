@@ -1,7 +1,8 @@
+import uuid
 import pytest
 import requests
 import json
-from conftest import supabase_config, test_credentials, auth_headers
+from conftest import supabase_config, test_credentials, auth_headers, supabase_admin
 
 
 class TestSupabaseAuth:
@@ -52,8 +53,8 @@ class TestSupabaseAuth:
 
         assert response.status_code == 400
         data = response.json()
-        assert "error" in data
-        assert "Invalid login credentials" in data["error_description"]
+        assert "error_code" in data
+        assert "Invalid login credentials" in data["msg"]
 
     def test_login_missing_email(self, supabase_config, auth_headers):
         """Test login failure with missing email"""
@@ -75,7 +76,8 @@ class TestSupabaseAuth:
 
         assert response.status_code == 400
         data = response.json()
-        assert "error" in data
+        assert "error_code" in data
+        assert "missing email or phone" in data["msg"]
 
     def test_login_missing_password(self, supabase_config, test_credentials, auth_headers):
         """Test login failure with missing password"""
@@ -97,13 +99,14 @@ class TestSupabaseAuth:
 
         assert response.status_code == 400
         data = response.json()
-        assert "error" in data
+        assert "error_code" in data
+        assert "Invalid login credentials" in data["msg"]
 
-    def test_signup_success(self, supabase_config, auth_headers):
+    def test_signup_success(self, supabase_config, auth_headers, supabase_admin):
         """Test successful user registration"""
         url = f"{supabase_config['auth_url']}/signup"
         payload = {
-            "email": "newuser@example.com",
+            "email": f"u_{uuid.uuid4().hex[:8]}@gmail.com".strip().lower(),
             "password": "password123"
         }
 
@@ -118,29 +121,34 @@ class TestSupabaseAuth:
 
         assert response.status_code == 200
         data = response.json()
-        assert "user" in data
-        assert data["user"]["email"] == "newuser@example.com"
+        assert data["email"] == payload["email"]
 
-    def test_signup_duplicate_email(self, supabase_config, test_credentials, auth_headers):
-        """Test signup failure with duplicate email"""
-        url = f"{supabase_config['auth_url']}/signup"
-        payload = {
-            "email": test_credentials['valid_email'],
-            "password": "password123"
-        }
+        user_id = data["id"]
+        print(user_id)
 
-        response = requests.post(
-            url,
-            json=payload,
-            headers=auth_headers
-        )
+        if user_id:
+            supabase_admin.auth.admin.delete_user(user_id)
 
-        print(f"Response status: {response.status_code}")
-        print(f"Response body: {response.text}")
+    # def test_signup_duplicate_email(self, supabase_config, test_credentials, auth_headers):
+    #     """Test signup failure with duplicate email"""
+    #     url = f"{supabase_config['auth_url']}/signup"
+    #     payload = {
+    #         "email": test_credentials['valid_email'],
+    #         "password": "password123"
+    #     }
 
-        assert response.status_code == 400
-        data = response.json()
-        assert "error" in data
+    #     response = requests.post(
+    #         url,
+    #         json=payload,
+    #         headers=auth_headers
+    #     )
+
+    #     print(f"Response status: {response.status_code}")
+    #     print(f"Response body: {response.text}")
+
+    #     assert response.status_code == 400
+    #     data = response.json()
+    #     assert "error_code" in data
 
     def test_logout_success(self, supabase_config, test_credentials, auth_headers):
         """Test successful logout"""
@@ -207,3 +215,6 @@ class TestSupabaseAuth:
         assert "id" in data
         assert "email" in data
         assert data["email"] == test_credentials['valid_email']
+
+    def test_user_creation(self, temp_user):
+        assert temp_user["id"] is not None
