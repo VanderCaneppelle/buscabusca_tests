@@ -14,9 +14,11 @@ def supabase_config():
     url = os.getenv("SUPABASE_URL")
     service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
     anon_key = os.getenv("SUPABASE_ANON_KEY")
-    auth_url = os.getenv("AUTH_URL")
-    confirmed_user_email = os.getenv("CONFIRMED_EMAIL")
-    signup_url = os.getenv("SIGNUP_URL")
+
+    # Variáveis hardcoded (não sensíveis)
+    auth_url = "http://buscabusca.vercel.app/api/auth"
+    confirmed_user_email = "vandercaneppelle@outlook.com"
+    signup_url = "http://buscabusca.vercel.app/api/auth/signup"
 
     assert url and service_key and anon_key, "Defina variaveis do SUPABASE"
 
