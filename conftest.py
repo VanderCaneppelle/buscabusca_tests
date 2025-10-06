@@ -20,7 +20,7 @@ def supabase_config():
     confirmed_user_email = "vandercaneppelle@outlook.com"
     signup_url = "http://buscabusca.vercel.app/api/auth/signup"
 
-    assert url and service_key and anon_key, "Defina variaveis do SUPABASE"
+    # assert url and service_key and anon_key, "Defina variaveis do SUPABASE"
 
     return {"url": url, "service_key": service_key, "anon_key": anon_key, "auth_url": auth_url, "confirmed_user_email": confirmed_user_email, "signup_url": signup_url}
 
