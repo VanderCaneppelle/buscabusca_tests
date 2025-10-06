@@ -8,7 +8,7 @@ from conftest import supabase_config, test_credentials, auth_headers_service_key
 
 class TestSupabaseAuth:
 
-    def test_login_success(self, supabase_config, test_credentials, auth_headers_anon_key):
+    def test_login_success(self, supabase_config, test_credentials, auth_headers_service_key):
         """Test successful login with valid credentials"""
         url = f"{supabase_config['auth_url']}/token"
         payload = {
@@ -20,7 +20,7 @@ class TestSupabaseAuth:
             url,
             json=payload,
             params={"grant_type": "password"},
-            headers=auth_headers_anon_key
+            headers=auth_headers_service_key
         )
 
         print(f"Response status: {response.status_code}")
