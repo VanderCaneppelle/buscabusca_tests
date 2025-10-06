@@ -19,6 +19,10 @@ jobs:
 
       - name: Run tests
         id: pytest
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           mkdir -p results
           pytest tests/api --junitxml=results/report.xml || echo "Tests failed"
