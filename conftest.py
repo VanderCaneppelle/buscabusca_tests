@@ -16,9 +16,9 @@ def supabase_config():
     anon_key = os.getenv("SUPABASE_ANON_KEY")
 
     # Variáveis hardcoded (não sensíveis)
-    auth_url = "http://buscabusca.vercel.app/api/auth"
+    auth_url = "https://rxozhlxmfbioqgqomkrz.supabase.co/auth/v1"
     confirmed_user_email = "vandercaneppelle@outlook.com"
-    signup_url = "http://buscabusca.vercel.app/api/auth/signup"
+    signup_url = "https://rxozhlxmfbioqgqomkrz.supabase.co/functions/v1/signup-proxy"
 
     # Debug: imprimir variáveis para verificar se estão sendo carregadas
     print(f"DEBUG - SUPABASE_URL: {url}")
