@@ -39,8 +39,7 @@ class TestSupabaseAuth:
         url = f"{supabase_config['auth_url']}/token"
         payload = {
             "email": test_credentials['invalid_email'],
-            "password": test_credentials['invalid_password'],
-            "full_name": "Vander Caneppelle"
+            "password": test_credentials['invalid_password']
         }
 
         response = requests.post(
@@ -182,7 +181,8 @@ class TestSupabaseAuth:
         signup_payload = {
             "email": email,
             "password": test_credentials['valid_password'],
-
+            "full_name": "Test User",
+            "phone": "+5511999999999"
         }
 
         r = requests.post(signup_url, json=signup_payload,
@@ -204,7 +204,9 @@ class TestSupabaseAuth:
 
         signup_payload = {
             "email": supabase_config['confirmed_user_email'],
-            "password": test_credentials['valid_password']
+            "password": test_credentials['valid_password'],
+            "full_name": "Existing User",
+            "phone": "+5511888888888"
         }
 
         r = requests.post(signup_url, json=signup_payload,
