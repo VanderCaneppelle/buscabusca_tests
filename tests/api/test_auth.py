@@ -39,7 +39,10 @@ class TestSupabaseAuth:
         url = f"{supabase_config['auth_url']}/token"
         payload = {
             "email": test_credentials['invalid_email'],
-            "password": test_credentials['invalid_password']
+            "password": test_credentials['invalid_password'],
+            "full_name": "Vander Caneppelle"
+            "phone": "11999999999"
+
         }
 
         response = requests.post(
